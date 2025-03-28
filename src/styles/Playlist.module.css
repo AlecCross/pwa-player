@@ -1,0 +1,25 @@
+.listItem {
+    padding: 10px;
+    cursor: pointer;
+    color: red; 
+    transition: background-color 0.3s ease;
+    user-select: none; /* Знебарвлюємо виділення тексту */
+  }
+  
+  .listItem:hover {
+    background-color: #aa8383; /* Легке підсвічування при наведенні */
+  }
+  
+  .active {
+    background-color: #d3ffd3; /* Підсвічування вибраного елемента */
+    font-weight: bold;
+  }
+  
+  /* Для уникнення змінення стилів при фокусі чи виділенні */
+  .listItem:focus,
+  .listItem:active {
+    outline: none; /* Прибираємо обведення при фокусі */
+    background-color: inherit; /* Підсвічування не буде змінювати фон при фокусі */
+    color: inherit; /* Колір не змінюється */
+  }
+  
