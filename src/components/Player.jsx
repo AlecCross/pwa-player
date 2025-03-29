@@ -1,72 +1,72 @@
 import { useState, useRef, useEffect } from "react";
-import styles from "../styles/Player.module.css"; // Імпортуємо стилі
+import styles from "../styles/Player.module.css";
 
 const Player = ({ files }) => {
-  const [currentIndex, setCurrentIndex] = useState(null); // Початково немає вибраного треку
+  const [currentIndex, setCurrentIndex] = useState(null);
   const audioRef = useRef(null);
 
-  // Завантаження і відтворення треку після зміни індексу
   useEffect(() => {
     if (currentIndex !== null && files.length > 0) {
-      audioRef.current.src = URL.createObjectURL(files[currentIndex]);
-      audioRef.current.load();  // Завантажуємо новий файл перед відтворенням
-      audioRef.current.play();  // Автоматично запускаємо відтворення
+      const file = files[currentIndex];
+      const url = URL.createObjectURL(file);
+      audioRef.current.src = url;
+      audioRef.current.load();
+      audioRef.current.play();
+      
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: file.name,
+          artist: "Unknown Artist",
+          artwork: [
+            { src: "/icon-512.webp", sizes: "512x512", type: "image/webp" }
+          ]
+        });
+        
+        navigator.mediaSession.setActionHandler("play", () => audioRef.current.play());
+        navigator.mediaSession.setActionHandler("pause", () => audioRef.current.pause());
+        navigator.mediaSession.setActionHandler("previoustrack", playPrevious);
+        navigator.mediaSession.setActionHandler("nexttrack", playNext);
+      }
     }
   }, [currentIndex, files]);
 
-  // Функція для відтворення наступного треку
   const playNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % files.length); // Циклічне перемикання
+    setCurrentIndex((prev) => (prev === null ? 0 : (prev + 1) % files.length));
   };
 
-  // Функція для відтворення попереднього треку
   const playPrevious = () => {
-    setCurrentIndex((prev) => (prev - 1 + files.length) % files.length); // Циклічне перемикання
+    setCurrentIndex((prev) => (prev === null ? files.length - 1 : (prev - 1 + files.length) % files.length));
   };
 
-  // Встановлення вибраного треку
   const playTrack = (index) => {
-    setCurrentIndex(index); // Встановлюємо індекс обраного треку і починаємо відтворення
+    setCurrentIndex(index);
   };
 
-  // Обробка завершення треку
   const handleAudioEnd = () => {
-    playNext(); // Переходимо до наступного треку після завершення поточного
+    playNext();
   };
 
   return (
     <div className={styles.playerContainer}>
-      <audio
-        ref={audioRef}
-        controls
-        onEnded={handleAudioEnd}  // Викликаємо функцію після завершення треку
-      />
+      <audio ref={audioRef} controls onEnded={handleAudioEnd} />
       <div className={styles.audioControls}>
-        <button onClick={playPrevious} disabled={files.length === 0}>
-          Попередній
-        </button>
-        <button onClick={playNext} disabled={files.length === 0}>
-          Наступний
-        </button>
+        <button onClick={playPrevious} disabled={files.length === 0}>Попередній</button>
+        <button onClick={playNext} disabled={files.length === 0}>Наступний</button>
       </div>
-
-      {/* Виведення списку треків */}
       <ul className={styles.trackList}>
         {files.map((file, index) => (
           <li
             key={index}
-            onClick={() => playTrack(index)}  // Вибір треку
+            onClick={() => playTrack(index)}
             className={`${styles.trackItem} ${index === currentIndex ? styles.trackItemActive : ""}`}
           >
             <span className={styles.trackName}>{file.name}</span>
           </li>
         ))}
       </ul>
-
-      <p>{files.length > 0 ? files[currentIndex]?.name : "Файл не вибрано"}</p>
+      <p>{files.length > 0 && currentIndex !== null ? files[currentIndex]?.name : "Файл не вибрано"}</p>
     </div>
   );
 };
 
 export default Player;
-  
