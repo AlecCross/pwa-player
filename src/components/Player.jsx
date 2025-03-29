@@ -8,20 +8,36 @@ const Player = ({ files }) => {
   useEffect(() => {
     if (currentIndex !== null && files.length > 0) {
       const file = files[currentIndex];
+  
+      // Перевірка типу файлу
+      if (!(file instanceof File)) {
+        console.error("Invalid file format", file);
+        return;
+      }
+  
+      // Очистка попереднього URL (щоб уникнути витоку пам’яті)
+      if (audioRef.current.src) {
+        URL.revokeObjectURL(audioRef.current.src);
+      }
+  
+      // Створення нового URL
       const url = URL.createObjectURL(file);
       audioRef.current.src = url;
       audioRef.current.load();
-      audioRef.current.play();
-      
+  
+      // Обробка можливих помилок при відтворенні
+      audioRef.current.play().catch((err) => {
+        console.warn("Autoplay failed:", err);
+      });
+  
+      // Оновлення Media Session API
       if ("mediaSession" in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: file.name,
           artist: "Unknown Artist",
-          artwork: [
-            { src: "/icon-512.webp", sizes: "512x512", type: "image/webp" }
-          ]
+          artwork: [{ src: "/icon-512.webp", sizes: "512x512", type: "image/webp" }]
         });
-        
+  
         navigator.mediaSession.setActionHandler("play", () => audioRef.current.play());
         navigator.mediaSession.setActionHandler("pause", () => audioRef.current.pause());
         navigator.mediaSession.setActionHandler("previoustrack", playPrevious);
@@ -29,7 +45,7 @@ const Player = ({ files }) => {
       }
     }
   }, [currentIndex, files]);
-
+  
   const playNext = () => {
     setCurrentIndex((prev) => (prev === null ? 0 : (prev + 1) % files.length));
   };
