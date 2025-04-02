@@ -7,6 +7,23 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
+  "file_handlers": [
+  {
+    "action": "/play-audio",
+    "accept": {
+      "*/*": [
+        ".mp3",
+        ".ogg",
+        ".wav",
+        ".aac",
+        ".m4a",
+        ".flac",
+        ".opus",
+        ".webm"
+      ]
+    }
+  }
+],
   "icons": [
     {
       "src": "/icon-192.webp?v=2",
