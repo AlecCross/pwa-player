@@ -9,7 +9,7 @@ const Playlist = ({ files, onSelect, currentIndex }) => {
           <li
             key={index}
             className={`${styles.listItem} ${index === currentIndex ? styles.active : ""}`}
-            onClick={() => onSelect(file)}
+            onClick={() => onSelect(index)} // Передаємо індекс
           >
             {file.name}
           </li>
@@ -18,5 +18,6 @@ const Playlist = ({ files, onSelect, currentIndex }) => {
     </div>
   );
 };
+
 
 export default Playlist;

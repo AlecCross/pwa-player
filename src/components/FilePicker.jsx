@@ -1,28 +1,36 @@
+//src/components/FilePicker.jsx
+
 import { useState } from "react";
-import styles from '../styles/FilePicker.module.css'
+import styles from '../styles/FilePicker.module.css';
+import { savePlaylist } from '../lib/db';
 
 const FilePicker = ({ onFilesSelected }) => {
   const [files, setFiles] = useState([]);
 
-  // Функція для вибору папки та фільтрації аудіофайлів
   const selectFolder = async () => {
     try {
       const directoryHandle = await window.showDirectoryPicker();
+      console.log("directoryHandle:", directoryHandle);
+      const audioFilesWithHandles = [];
       const audioFiles = [];
 
       for await (const entry of directoryHandle.values()) {
         if (entry.kind === "file") {
           const file = await entry.getFile();
-          
-          // Фільтруємо тільки аудіофайли за MIME-типом або розширенням
           if (file.type.startsWith("audio/") || /\.(mp3|wav|flac|ogg)$/i.test(file.name)) {
             audioFiles.push(file);
+            audioFilesWithHandles.push({ name: file.name, type: file.type, handle: entry });
           }
         }
       }
 
-      setFiles(audioFiles); // Оновлюємо стан тільки аудіофайлами
-      onFilesSelected(audioFiles); // Передаємо файли у Player
+      console.log("audioFilesWithHandles:", audioFilesWithHandles);
+      setFiles(audioFiles);
+      onFilesSelected(audioFiles);
+
+      console.log("Викликаємо savePlaylist...");
+      await savePlaylist(directoryHandle.name, audioFilesWithHandles);
+      console.log("savePlaylist завершено.");
 
     } catch (error) {
       console.error("Помилка вибору папки:", error);
@@ -32,11 +40,7 @@ const FilePicker = ({ onFilesSelected }) => {
   return (
     <div className={styles.wrapper}>
       <button className={styles.button} onClick={selectFolder}>Обрати папку</button>
-      {/* <ul>
-        {files.map((file, index) => (
-          <li key={index}>{file.name}</li>
-        ))}
-      </ul> */}
+      {/* ... */}
     </div>
   );
 };
