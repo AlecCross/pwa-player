@@ -46,3 +46,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Player.module.css */
+.coverArt {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 10px;
+}

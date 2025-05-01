@@ -4,9 +4,11 @@ import FilePicker from "../components/FilePicker";
 import Player from "../components/Player";
 import styles from "../styles/Home.module.css";
 import { loadPlaylist } from "../lib/db";
+import { parseBlob } from 'music-metadata';
 
 export default function Home() {
   const [files, setFiles] = useState([]);
+  const [tracks, setTracks] = useState([]); // Містить об'єкти з { file, metadata }
 
   useEffect(() => {
     const loadSavedPlaylist = async () => {
@@ -41,8 +43,21 @@ export default function Home() {
     loadSavedPlaylist();
   }, []);
 
-  const handleFilesSelected = (selectedFiles) => {
-    setFiles(selectedFiles);
+  const handleFilesSelected = async (selectedFiles) => {
+    setFiles(selectedFiles); // ДОДАЙТЕ ЦЕ
+  
+    const parsedTracks = await Promise.all(
+      selectedFiles.map(async (file) => {
+        try {
+          const metadata = await parseBlob(file);
+          return { file, metadata };
+        } catch (error) {
+          console.error("Не вдалося прочитати метадані для", file.name);
+          return { file, metadata: {} };
+        }
+      })
+    );
+    setTracks(parsedTracks);
   };
 
   return (
