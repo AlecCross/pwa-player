@@ -62,8 +62,10 @@ export default function Home() {
 
   return (
     <div>
-      <h1 className={styles.title}>PWA Музичний плеєр</h1>
+      <div className={styles.wrapper}>
+      <h1 className={styles.title}>PWA Player</h1>
       <FilePicker onFilesSelected={handleFilesSelected} />
+      </div>
       {files.length > 0 && <Player files={files} />}
     </div>
   );
