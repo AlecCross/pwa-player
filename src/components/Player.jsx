@@ -8,7 +8,47 @@ const Player = ({ files }) => {
   const [currentIndex, setCurrentIndex] = useState(null);
   const audioRef = useRef(null);
   const [metadata, setMetadata] = useState({ title: "", artist: "", album: "", pictureUrl: "" });
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+  
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration);
+    };
+  
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+  
+      if (
+        'mediaSession' in navigator &&
+        typeof navigator.mediaSession.setPositionState === 'function' &&
+        !isNaN(audio.duration) &&
+        audio.readyState >= 1 // достатньо метаданих
+      ) {
+        try {
+          navigator.mediaSession.setPositionState({
+            duration: audio.duration,
+            playbackRate: audio.playbackRate,
+            position: audio.currentTime,
+          });
+        } catch (error) {
+          console.warn("setPositionState error:", error);
+        }
+      }
+    };
+  
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+  
+    return () => {
+      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+    };
+  }, []);
+  
   useEffect(() => {
     if (files && files.length > 0 && currentIndex === null) {
       setCurrentIndex(0); // Починаємо відтворення з першого файлу, якщо файли є і індекс не встановлено
@@ -110,21 +150,23 @@ const Player = ({ files }) => {
   
     extractMetadata();
   }, [currentIndex, files]);
-  
 
   return (
     <div className={styles.playerContainer}>
-           <div className={styles.metadata}>
-  <strong>{metadata.title}</strong>
-  <p>{metadata.artist}{metadata.album ? ` — ${metadata.album}` : ""}</p>
-  {metadata.pictureUrl && <img src={metadata.pictureUrl} alt="Обкладинка" className={styles.coverArt} />}
-</div>
+      <div className={styles.metadata}>
+      <strong>{metadata.title}</strong>
+      <p>{metadata.artist}{metadata.album ?
+       ` — ${metadata.album}` :
+        ""}
+      </p>
+      {metadata.pictureUrl && 
+      <img src={metadata.pictureUrl} alt="Обкладинка" className={styles.coverArt} />}
+    </div>
       <audio ref={audioRef} controls onEnded={handleAudioEnd} />
       <div className={styles.audioControls}>
         <button onClick={playPrevious} disabled={!files || files.length === 0}>Попередній</button>
         <button onClick={playNext} disabled={!files || files.length === 0}>Наступний</button>
       </div>
- 
       <ul className={styles.trackList}>
         {files && files.map((file, index) => (
           <li
