@@ -1,12 +1,29 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card-bg: #f2f2f2;
+  --accent: #0070f3;
+  --accent-bg: rgba(0, 112, 243, 0.1);
+  --accent-text: #ffffff;
+  --active-track: #cce5cc;
+
+  --player-bg: #e6f0ff;
+  --player-text: #000000;
+  --player-subtext: #444444;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --card-bg: #111111;
+    --accent: #1db954;
+    --accent-bg: rgba(29, 185, 84, 0.2);
+    --accent-text: #3bd80b;
+    --active-track: #0f0;
+    --player-bg: #000000;
+    --player-text: #00ff00;     /* світло-зелений */
+    --player-subtext: #9f9;     /* ще світліше */
   }
 }
 

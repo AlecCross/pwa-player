@@ -153,22 +153,27 @@ const Player = ({ files }) => {
 
   return (
     <div className={styles.playerContainer}>
-      <div className={styles.metadata}>
-      <strong>{metadata.title}</strong>
-      <p>{metadata.artist}{metadata.album ?
-       ` — ${metadata.album}` :
-        ""}
-      </p>
-      {metadata.pictureUrl && 
-      <img src={metadata.pictureUrl} alt="Обкладинка" className={styles.coverArt} />}
-    </div>
-      <audio ref={audioRef} controls onEnded={handleAudioEnd} />
-      <div className={styles.audioControls}>
-        <button onClick={playPrevious} disabled={!files || files.length === 0}>Попередній</button>
-        <button onClick={playNext} disabled={!files || files.length === 0}>Наступний</button>
+      <div className={styles.playerHeader}>
+        {metadata.pictureUrl && (
+          <img src={metadata.pictureUrl} alt="Обкладинка" className={styles.coverArt} />
+        )}
+        <div className={styles.metadata}>
+          <strong className={styles.title}>{metadata.title}</strong>
+          <p className={styles.subtitle}>
+            {metadata.artist}
+            {metadata.album ? ` — ${metadata.album}` : ""}
+          </p>
+          <div className={styles.audioControls}>
+            <button onClick={playPrevious} disabled={!files || files.length === 0}>⏮</button>
+            <button onClick={playNext} disabled={!files || files.length === 0}>⏭</button>
+          </div>
+        </div>
       </div>
+
+      <audio ref={audioRef} controls onEnded={handleAudioEnd} className={styles.audioElement} />
+
       <ul className={styles.trackList}>
-        {files && files.map((file, index) => (
+        {files?.map((file, index) => (
           <li
             key={index}
             onClick={() => playTrack(index)}
@@ -178,7 +183,6 @@ const Player = ({ files }) => {
           </li>
         ))}
       </ul>
-      <p>{files && files.length > 0 && currentIndex !== null ? files[currentIndex]?.name : "Файл не вибрано"}</p>
     </div>
   );
 };

@@ -4,43 +4,105 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: 20px;
-  background-color: #000000;
+  background-color: var(--player-bg);
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  max-width: 600px;
+  max-width: 900px;
   margin: 0 auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  color: var(--player-text);
+  font-family: monospace;
+}
+
+
+/* Header with cover + metadata + controls */
+.playerHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.coverArt {
+  width: 60%;
+  max-width: 300px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.metadata {
+  text-align: center;
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--player-text);
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: var(--player-subtext);
 }
 
 .audioControls {
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
+.audioControls button {
+  background-color: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.audioControls button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.audioControls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.audioElement {
+  margin-top: 10px;
+  width: 100%;
+}
+
+/* Playlist */
 .trackList {
   margin-top: 20px;
   list-style: none;
   padding: 0;
   width: 100%;
-  /* max-height: 200px; */
   overflow-y: auto;
-  border-top: 2px solid #ccc;
+  border-top: 2px solid var(--foreground);
+  background-color: var(--card-bg);
+  max-height: 200px;
 }
 
 .trackItem {
-  padding: 8px;
+  padding: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  color: var(--foreground);
 }
 
 .trackItem:hover {
-  background-color: #c43e3e;
+  background-color: rgba(29, 185, 84, 0.2); /* прозорий акцент */
 }
 
 .trackItemActive {
-  background-color: #3b5998;
-  color: rgb(31, 31, 31);
+  background-color: var(--accent-bg);
+  color: var(--accent-text);
   font-weight: bold;
+  border-left: 3px solid var(--accent);
 }
 
 .trackName {
@@ -49,11 +111,36 @@
   white-space: nowrap;
 }
 
-/* Player.module.css */
-.coverArt {
-  width: 50%;
-  height: 50%;
-  object-fit: cover;
-  border-radius: 8px;
+.currentFileName {
   margin-top: 10px;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  .playerHeader {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .metadata {
+    text-align: left;
+    flex: 1;
+    margin-left: 20px;
+  }
+
+  .audioControls {
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .coverArt {
+    width: 150px;
+    height: 150px;
+  }
 }
