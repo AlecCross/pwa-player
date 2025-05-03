@@ -11,6 +11,10 @@ const Player = ({ files }) => {
   const [duration, setDuration] = useState(0);
   const audioRef = useRef(null);
   const [tracks, setTracks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadedCount, setLoadedCount] = useState(1); // Змінено навмисно
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentLoadingTrackName, setCurrentLoadingTrackName] = useState("");
 
   function naturalSort(a, b) {
     const re = /(^-?[0-9]+(\.[0-9]+)?$)|(^-?\.?[0-9]+$)|(^-?[0-9]+\.$)/i,
@@ -50,11 +54,13 @@ const Player = ({ files }) => {
   }
 
   const playNext = () => {
+    console.log("playNext викликано, currentIndex:", currentIndex);
     if (!tracks?.length) return;
     setCurrentIndex((prev) => (prev === null ? 0 : (prev + 1) % tracks.length));
   };
 
   const playPrevious = () => {
+    console.log("playPrevious викликано, currentIndex:", currentIndex);
     if (!tracks?.length) return;
     setCurrentIndex((prev) =>
       prev === null ? tracks.length - 1 : (prev - 1 + tracks.length) % tracks.length
@@ -70,10 +76,22 @@ const Player = ({ files }) => {
         artwork: [{ src: track.metadata.pictureUrl || "/icon-512.webp", sizes: "512x512", type: "image/png" }],
       });
 
-      navigator.mediaSession.setActionHandler("play", () => audioRef.current?.play());
-      navigator.mediaSession.setActionHandler("pause", () => audioRef.current?.pause());
-      navigator.mediaSession.setActionHandler("previoustrack", playPrevious);
-      navigator.mediaSession.setActionHandler("nexttrack", playNext);
+      navigator.mediaSession.setActionHandler("play", () => {
+        console.log("MediaSession: play");
+        audioRef.current?.play();
+      });
+      navigator.mediaSession.setActionHandler("pause", () => {
+        console.log("MediaSession: pause");
+        audioRef.current?.pause();
+      });
+      navigator.mediaSession.setActionHandler("previoustrack", () => {
+        console.log("MediaSession: previoustrack");
+        playPrevious();
+      });
+      navigator.mediaSession.setActionHandler("nexttrack", () => {
+        console.log("MediaSession: nexttrack");
+        playNext();
+      });
     } else if ("mediaSession" in navigator && track) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: track.file.name,
@@ -88,35 +106,39 @@ const Player = ({ files }) => {
     if (!files?.length) return;
 
     const processFiles = async () => {
-      const processedTracks = await Promise.all(
-        files.map(async (file) => {
-          let metadata = {
-            title: file.name,
-            artist: "Невідомий виконавець",
-            album: "",
-            pictureUrl: "/icon-512.webp",
-          };
+      setLoading(true);
+      setLoadedCount(1); // Змінено навмисно
+      setTotalCount(files.length);
+      const processedTracks = [];
 
-          try {
-            const result = await parseBlob(file);
-            metadata.title = result.common.title || file.name;
-            metadata.artist = result.common.artist || "Невідомий виконавець";
-            metadata.album = result.common.album || "";
-            if (result.common.picture?.[0]) {
-              const pic = result.common.picture[0];
-              const blob = new Blob([pic.data], { type: pic.format });
-              metadata.pictureUrl = URL.createObjectURL(blob);
-            }
-            metadata.trackNumber = result.common.track?.no ?? null;
-          } catch (err) {
-            console.warn("Не вдалося зчитати теги для", file.name, err);
+      for (const file of files) {
+        setCurrentLoadingTrackName(file.name);
+        let metadata = {
+          title: file.name,
+          artist: "Невідомий виконавець",
+          album: "",
+          pictureUrl: "/icon-512.webp",
+        };
+
+        try {
+          const result = await parseBlob(file);
+          metadata.title = result.common.title || file.name;
+          metadata.artist = result.common.artist || "Невідомий виконавець";
+          metadata.album = result.common.album || "";
+          if (result.common.picture?.[0]) {
+            const pic = result.common.picture[0];
+            const blob = new Blob([pic.data], { type: pic.format });
+            metadata.pictureUrl = URL.createObjectURL(blob);
           }
+          metadata.trackNumber = result.common.track?.no ?? null;
+        } catch (err) {
+          console.warn("Не вдалося зчитати теги для", file.name, err);
+        }
+        processedTracks.push({ file, metadata });
+        setLoadedCount((prevCount) => prevCount + 1);
+      }
 
-          return { file, metadata };
-        })
-      );
-
-      console.log("Початковий масив processedTracks:", processedTracks.map(item => ({ name: item.file.name, track: item.metadata.trackNumber })));
+      setLoading(false);
 
       const sortedTracks = [...processedTracks].sort((a, b) => {
         const trackA = a.metadata.trackNumber;
@@ -150,14 +172,13 @@ const Player = ({ files }) => {
     processFiles();
   }, [files]);
 
-  // Оновлення currentTrack при зміні currentIndex
   useEffect(() => {
     if (tracks?.length && currentIndex !== null) {
       setCurrentTrack(tracks[currentIndex]);
+      setMediaSessionMetadata(tracks[currentIndex]);
     }
   }, [currentIndex, tracks]);
 
-  // Завантаження треку
   useEffect(() => {
     if (!currentTrack) return;
     const file = currentTrack.file;
@@ -173,11 +194,8 @@ const Player = ({ files }) => {
     audio.play().catch((err) => {
       console.warn("Автовідтворення не вдалося:", err);
     });
-
-    setMediaSessionMetadata(currentTrack);
   }, [currentTrack]);
 
-  // Ініціалізація аудіо подій (без змін)
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -225,16 +243,36 @@ const Player = ({ files }) => {
       <audio ref={audioRef} controls onEnded={handleAudioEnd} className={styles.audioElement} />
 
       <ul className={styles.trackList}>
-        {tracks?.map((track, index) => (
-          <li
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={`${styles.trackItem} ${index === currentIndex ? styles.trackItemActive : ""}`}
-          >
-            <span className={styles.trackName}>{track.file.name}</span>
+        {loading ? (
+          <li className={styles.loadingItem}>
+            <span className={styles.loadingTrackName}>{currentLoadingTrackName}</span>
+            <div className={styles.progressBar}>
+              <div
+                className={styles.progressBarFill}
+                style={{ width: `${(loadedCount / totalCount) * 100}%` }}
+              ></div>
+            </div>
+            <span className={styles.loadingProgressText}>
+              {loadedCount}/{totalCount}
+            </span>
           </li>
-        ))}
+        ) : (
+          tracks?.map((track, index) => (
+            <li
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={`${styles.trackItem} ${index === currentIndex ? styles.trackItemActive : ""}`}
+            >
+              <span className={styles.trackName}>{track.file.name}</span>
+            </li>
+          ))
+        )}
       </ul>
+      {loading && (
+        <div className={styles.loadingInfo}>
+          Обробка: {currentLoadingTrackName} ({loadedCount}/{totalCount})
+        </div>
+      )}
     </div>
   );
 };
