@@ -55,151 +55,153 @@ const Player = ({ files }) => {
     }
 
     const playNext = () => {
-      console.log("playNext викликано, currentIndex:", currentIndex);
-      if (!tracks?.length) return;
-      const nextIndex = (currentIndex === null ? 0 : (currentIndex + 1) % tracks.length);
-      console.log("playNext: новий індекс:", nextIndex);
-      setCurrentIndex(nextIndex);
-  };
-  
-  const playPrevious = () => {
-      console.log("playPrevious викликано, currentIndex:", currentIndex);
-      if (!tracks?.length) return;
-      const prevIndex = (currentIndex === null ? tracks.length - 1 : (currentIndex - 1 + tracks.length) % tracks.length);
-      console.log("playPrevious: новий індекс:", prevIndex);
-      setCurrentIndex(prevIndex);
-  };
+        console.log("playNext викликано, поточний currentIndex:", currentIndex);
+        if (!tracks?.length) return;
+        const nextIndex = (currentIndex === null ? 0 : (currentIndex + 1) % tracks.length);
+        console.log("playNext: новий індекс:", nextIndex);
+        setCurrentIndex(nextIndex);
+        console.log("playNext: currentIndex оновлено на:", nextIndex);
+    };
+
+    const playPrevious = () => {
+        console.log("playPrevious викликано, поточний currentIndex:", currentIndex);
+        if (!tracks?.length) return;
+        const prevIndex = (currentIndex === null ? tracks.length - 1 : (currentIndex - 1 + tracks.length) % tracks.length);
+        console.log("playPrevious: новий індекс:", prevIndex);
+        setCurrentIndex(prevIndex);
+        console.log("playPrevious: currentIndex оновлено на:", prevIndex);
+    };
 
     const handlePlay = () => {
-      console.log("handlePlay викликано, isPlaying:", isPlaying);
-      if (audioRef.current) {
-          audioRef.current.play();
-          setIsPlaying(true);
-          if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing";
-      }
-  };
-
-  const handlePause = () => {
-      console.log("handlePause викликано, isPlaying:", isPlaying);
-      if (audioRef.current) {
-          audioRef.current.pause();
-          setIsPlaying(false);
-          if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused";
-      }
-  };
-
-    const setMediaSessionMetadata = (track) => {
-        if ("mediaSession" in navigator && track?.metadata) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: track.metadata.title || track.file.name,
-                artist: track.metadata.artist || "Невідомий виконавець",
-                album: track.metadata.album || "",
-                artwork: [{ src: track.metadata.pictureUrl || "/icon-512.webp", sizes: "512x512", type: "image/png" }],
-            });
-        } else if ("mediaSession" in navigator && track) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: track.file.name,
-                artist: "Невідомий виконавець",
-                album: "",
-                artwork: [{ src: "/icon-512.webp", sizes: "512x512", type: "image/png" }],
-            });
+        console.log("handlePlay викликано, isPlaying:", isPlaying);
+        if (audioRef.current) {
+            audioRef.current.play();
+            setIsPlaying(true);
+            if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing";
         }
     };
 
-    useEffect(() => {
-      if ("mediaSession" in navigator) {
-          navigator.mediaSession.setActionHandler("play", () => {
-              console.log("MediaSession: play викликано");
-              handlePlay();
-              setIsPlaying(true);
-              console.log("MediaSession: стан isPlaying оновлено на true");
+    const handlePause = () => {
+        console.log("handlePause викликано, isPlaying:", isPlaying);
+        if (audioRef.current) {
+            audioRef.current.pause();
+            setIsPlaying(false);
+            if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused";
+        }
+    };
+
+    const setMediaSessionMetadata = (track) => {
+      if ("mediaSession" in navigator && track?.metadata) {
+          navigator.mediaSession.metadata = new MediaMetadata({
+              title: track.metadata.title || track.file.name,
+              artist: track.metadata.artist || "Невідомий виконавець",
+              album: track.metadata.album || "",
+              artwork: [{ src: track.metadata.pictureUrl || "/icon-512.webp", sizes: "512x512", type: "image/png" }],
           });
-          navigator.mediaSession.setActionHandler("pause", () => {
-              console.log("MediaSession: pause викликано");
-              handlePause();
-              setIsPlaying(false);
-              console.log("MediaSession: стан isPlaying оновлено на false");
-          });
-          navigator.mediaSession.setActionHandler("previoustrack", () => {
-              console.log("MediaSession: previoustrack викликано");
-              playPrevious();
-          });
-          navigator.mediaSession.setActionHandler("nexttrack", () => {
-              console.log("MediaSession: nexttrack викликано");
-              playNext();
+      } else if ("mediaSession" in navigator && track) {
+          navigator.mediaSession.metadata = new MediaMetadata({
+              title: track.file.name,
+              artist: "Невідомий виконавець",
+              album: "",
+              artwork: [{ src: "/icon-512.webp", sizes: "512x512", type: "image/png" }],
           });
       }
-  }, [playNext, playPrevious, handlePlay, handlePause, setIsPlaying]);// Додайте setIsPlaying до залежностей
+  };
+
+    useEffect(() => {
+        if ("mediaSession" in navigator) {
+            navigator.mediaSession.setActionHandler("play", () => {
+                console.log("MediaSession: play викликано");
+                handlePlay();
+                setIsPlaying(true);
+                console.log("MediaSession: стан isPlaying оновлено на true");
+            });
+            navigator.mediaSession.setActionHandler("pause", () => {
+                console.log("MediaSession: pause викликано");
+                handlePause();
+                setIsPlaying(false);
+                console.log("MediaSession: стан isPlaying оновлено на false");
+            });
+            navigator.mediaSession.setActionHandler("previoustrack", () => {
+                console.log("MediaSession: previoustrack викликано");
+                playPrevious();
+            });
+            navigator.mediaSession.setActionHandler("nexttrack", () => {
+                console.log("MediaSession: nexttrack викликано");
+                playNext();
+            });
+        }
+    }, [playNext, playPrevious, handlePlay, handlePause, setIsPlaying]);// Додайте setIsPlaying до залежностей
 
     useEffect(() => {
         if (!files?.length) return;
 
         const processFiles = async () => {
-            setLoading(true);
-            setLoadedCount(1);
-            setTotalCount(files.length);
-            const processedTracks = [];
+          setLoading(true);
+          setLoadedCount(1);
+          setTotalCount(files.length);
+          const processedTracks = [];
 
-            for (const file of files) {
-                setCurrentLoadingTrackName(file.name);
-                let metadata = {
-                    title: file.name,
-                    artist: "Невідомий виконавець",
-                    album: "",
-                    pictureUrl: "/icon-512.webp",
-                };
+          for (const file of files) {
+              setCurrentLoadingTrackName(file.name);
+              let metadata = {
+                  title: file.name,
+                  artist: "Невідомий виконавець",
+                  album: "",
+                  pictureUrl: "/icon-512.webp",
+              };
 
-                try {
-                    const result = await parseBlob(file);
-                    metadata.title = result.common.title || file.name;
-                    metadata.artist = result.common.artist || "Невідомий виконавець";
-                    metadata.album = result.common.album || "";
-                    if (result.common.picture?.[0]) {
-                        const pic = result.common.picture[0];
-                        const blob = new Blob([pic.data], { type: pic.format });
-                        metadata.pictureUrl = URL.createObjectURL(blob);
-                    }
-                    metadata.trackNumber = result.common.track?.no ?? null;
-                } catch (err) {
-                    console.warn("Не вдалося зчитати теги для", file.name, err);
-                }
-                processedTracks.push({ file, metadata });
-                setLoadedCount((prevCount) => prevCount + 1);
-            }
-
-            setLoading(false);
-
-            const sortedTracks = [...processedTracks].sort((a, b) => {
-              const trackA = a.metadata.trackNumber;
-              const trackB = b.metadata.trackNumber;
-      
-              console.log(`Порівняння: "${a.file.name}" (track: ${trackA}) vs "${b.file.name}" (track: ${trackB})`);
-      
-              if (trackA != null && trackB != null) {
-                const numA = parseInt(trackA, 10);
-                const numB = parseInt(trackB, 10);
-                if (!isNaN(numA) && !isNaN(numB)) {
-                  const result = numA - numB;
-                  console.log(`  Числове порівняння trackNumber: ${numA} - ${numB} = ${result}`);
-                  return result;
-                }
-                const stringResult = String(trackA).localeCompare(String(trackB), undefined, { numeric: true, sensitivity: 'base' });
-                console.log(`  Рядкове порівняння trackNumber: "${trackA}" vs "${trackB}" = ${stringResult}`);
-                return stringResult;
+              try {
+                  const result = await parseBlob(file);
+                  metadata.title = result.common.title || file.name;
+                  metadata.artist = result.common.artist || "Невідомий виконавець";
+                  metadata.album = result.common.album || "";
+                  if (result.common.picture?.[0]) {
+                      const pic = result.common.picture[0];
+                      const blob = new Blob([pic.data], { type: pic.format });
+                      metadata.pictureUrl = URL.createObjectURL(blob);
+                  }
+                  metadata.trackNumber = result.common.track?.no ?? null;
+              } catch (err) {
+                  console.warn("Не вдалося зчитати теги для", file.name, err);
               }
-      
-              const naturalSortResult = naturalSort(a.file.name, b.file.name);
-              console.log(`  Natural sort (один або обидва без trackNumber): "${a.file.name}" vs "${b.file.name}" = ${naturalSortResult}`);
-              return naturalSortResult;
-            });
-      
-            console.log("Відсортований масив sortedTracks:", sortedTracks.map(item => ({ name: item.file.name, track: item.metadata.trackNumber })));
-            setTracks(sortedTracks);
-            setCurrentIndex(0);
-          };
+              processedTracks.push({ file, metadata });
+              setLoadedCount((prevCount) => prevCount + 1);
+          }
 
-        processFiles();
-    }, [files]);
+          setLoading(false);
+
+          const sortedTracks = [...processedTracks].sort((a, b) => {
+            const trackA = a.metadata.trackNumber;
+            const trackB = b.metadata.trackNumber;
+    
+            console.log(`Порівняння: "${a.file.name}" (track: ${trackA}) vs "${b.file.name}" (track: ${trackB})`);
+    
+            if (trackA != null && trackB != null) {
+              const numA = parseInt(trackA, 10);
+              const numB = parseInt(trackB, 10);
+              if (!isNaN(numA) && !isNaN(numB)) {
+                const result = numA - numB;
+                console.log(`  Числове порівняння trackNumber: ${numA} - ${numB} = ${result}`);
+                return result;
+              }
+              const stringResult = String(trackA).localeCompare(String(trackB), undefined, { numeric: true, sensitivity: 'base' });
+              console.log(`  Рядкове порівняння trackNumber: "${trackA}" vs "${trackB}" = ${stringResult}`);
+              return stringResult;
+            }
+    
+            const naturalSortResult = naturalSort(a.file.name, b.file.name);
+            console.log(`  Natural sort (один або обидва без trackNumber): "${a.file.name}" vs "${b.file.name}" = ${naturalSortResult}`);
+            return naturalSortResult;
+          });
+    
+          console.log("Відсортований масив sortedTracks:", sortedTracks.map(item => ({ name: item.file.name, track: item.metadata.trackNumber })));
+          setTracks(sortedTracks);
+          setCurrentIndex(0);
+        };
+
+      processFiles();
+  }, [files]);
 
     useEffect(() => {
         if (tracks?.length && currentIndex !== null) {
@@ -215,6 +217,8 @@ const Player = ({ files }) => {
 
         if (!(file instanceof File)) return console.error("Недійсний файл:", file);
 
+        console.log("useEffect для currentTrack, файл:", file.name);
+
         if (audioRef.current?.src) URL.revokeObjectURL(audioRef.current.src);
 
         const url = URL.createObjectURL(file);
@@ -223,48 +227,46 @@ const Player = ({ files }) => {
         audioRef.current.play()
             .then(() => {
                 setIsPlaying(true);
-                if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing"; // Явно оновлюємо стан
+                if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing";
             })
             .catch((err) => {
                 console.warn("Автоматичне відтворення не вдалося:", err);
                 setIsPlaying(false);
-                if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused"; // Явно оновлюємо стан
+                if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused";
             });
     }, [currentTrack]);
+
+    const handleAudioEnd = () => playNext(); // Визначення функції handleAudioEnd
 
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
 
         const onLoadedMetadata = () => setDuration(audio.duration);
-        const onTimeUpdate = () => {
-            setCurrentTime(audio.currentTime);
-            if ("mediaSession" in navigator && typeof navigator.mediaSession.setPositionState === "function" && !isNaN(audio.duration) && audio.readyState >= 1) {
-                try {
-                    navigator.mediaSession.setPositionState({ duration: audio.duration, playbackRate: audio.playbackRate, position: audio.currentTime });
-                } catch (e) {
-                    console.warn("setPositionState error:", e);
-                }
-            }
-        };
-
+        const onTimeUpdate = () => setCurrentTime(audio.currentTime);
         const onPlay = () => setIsPlaying(true);
         const onPause = () => setIsPlaying(false);
+        const onSeeked = () => {
+            console.log("Подія seeked, поточний час:", audio.currentTime);
+            // Перевірте, чи потрібно тут оновлювати якийсь стан
+        };
 
         audio.addEventListener("loadedmetadata", onLoadedMetadata);
         audio.addEventListener("timeupdate", onTimeUpdate);
         audio.addEventListener("play", onPlay);
         audio.addEventListener("pause", onPause);
+        audio.addEventListener("ended", handleAudioEnd); // Використання handleAudioEnd
+        audio.addEventListener("seeked", onSeeked);
 
         return () => {
             audio.removeEventListener("loadedmetadata", onLoadedMetadata);
             audio.removeEventListener("timeupdate", onTimeUpdate);
             audio.removeEventListener("play", onPlay);
             audio.removeEventListener("pause", onPause);
+            audio.removeEventListener("ended", handleAudioEnd); // Видалення слухача
+            audio.removeEventListener("seeked", onSeeked);
         };
-    }, []);
-
-    const handleAudioEnd = () => playNext();
+    }, [playNext, handleAudioEnd]); // Додано handleAudioEnd до залежностей
 
     return (
       <div className={styles.playerContainer}>
@@ -285,10 +287,8 @@ const Player = ({ files }) => {
             </div>
           </div>
         </div>
-  
-        <audio ref={audioRef} controls onEnded={handleAudioEnd} className={styles.audioElement} />
-  
-        <ul className={styles.trackList}>
+            <audio ref={audioRef} controls onEnded={handleAudioEnd} className={styles.audioElement} />
+            <ul className={styles.trackList}>
           {loading ? (
             <li className={styles.loadingItem}>
               <span className={styles.loadingTrackName}>{currentLoadingTrackName}</span>
@@ -324,4 +324,5 @@ const Player = ({ files }) => {
   };
   
   export default Player;
+  
   
