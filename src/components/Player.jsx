@@ -2,31 +2,62 @@
 
 import { useState, useRef, useEffect } from "react";
 import styles from "../styles/Player.module.css";
-import { parseBlob } from 'music-metadata';
+import { parseBlob } from "music-metadata";
 
 const Player = ({ files }) => {
   const [currentIndex, setCurrentIndex] = useState(null);
-  const audioRef = useRef(null);
-  const [metadata, setMetadata] = useState({ title: "", artist: "", album: "", pictureUrl: "" });
+  const [metadata, setMetadata] = useState({
+    title: "",
+    artist: "",
+    album: "",
+    pictureUrl: "/icon-512.webp",
+  });
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const audioRef = useRef(null);
 
+  const playNext = () => {
+    if (!files?.length) return;
+    setCurrentIndex((prev) => (prev === null ? 0 : (prev + 1) % files.length));
+  };
+
+  const playPrevious = () => {
+    if (!files?.length) return;
+    setCurrentIndex((prev) =>
+      prev === null ? files.length - 1 : (prev - 1 + files.length) % files.length
+    );
+  };
+
+  const setMediaSessionMetadata = ({ title, artist, album, pictureUrl }) => {
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title,
+        artist,
+        album,
+        artwork: [{ src: pictureUrl, sizes: "512x512", type: "image/png" }],
+      });
+
+      navigator.mediaSession.setActionHandler("play", () => audioRef.current?.play());
+      navigator.mediaSession.setActionHandler("pause", () => audioRef.current?.pause());
+      navigator.mediaSession.setActionHandler("previoustrack", playPrevious);
+      navigator.mediaSession.setActionHandler("nexttrack", playNext);
+    }
+  };
+
+  // Ініціалізація аудіо подій
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-  
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
-    };
-  
-    const handleTimeUpdate = () => {
+
+    const onLoadedMetadata = () => setDuration(audio.duration);
+    const onTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
-  
+
       if (
-        'mediaSession' in navigator &&
-        typeof navigator.mediaSession.setPositionState === 'function' &&
+        "mediaSession" in navigator &&
+        typeof navigator.mediaSession.setPositionState === "function" &&
         !isNaN(audio.duration) &&
-        audio.readyState >= 1 // достатньо метаданих
+        audio.readyState >= 1
       ) {
         try {
           navigator.mediaSession.setPositionState({
@@ -34,129 +65,98 @@ const Player = ({ files }) => {
             playbackRate: audio.playbackRate,
             position: audio.currentTime,
           });
-        } catch (error) {
-          console.warn("setPositionState error:", error);
+        } catch (e) {
+          console.warn("setPositionState error:", e);
         }
       }
     };
-  
-    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    audio.addEventListener("timeupdate", handleTimeUpdate);
-  
+
+    audio.addEventListener("loadedmetadata", onLoadedMetadata);
+    audio.addEventListener("timeupdate", onTimeUpdate);
+
     return () => {
-      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+      audio.removeEventListener("timeupdate", onTimeUpdate);
     };
   }, []);
-  
+
+  // Почати з першого треку
   useEffect(() => {
-    if (files && files.length > 0 && currentIndex === null) {
-      setCurrentIndex(0); // Починаємо відтворення з першого файлу, якщо файли є і індекс не встановлено
+    if (files?.length && currentIndex === null) {
+      setCurrentIndex(0);
     }
   }, [files, currentIndex]);
 
+  // Завантаження треку
   useEffect(() => {
-    if (currentIndex !== null && files && files.length > 0) {
+    if (currentIndex === null || !files?.length) return;
+    const file = files[currentIndex];
+
+    if (!(file instanceof File)) return console.error("Недійсний файл:", file);
+
+    if (audioRef.current?.src) URL.revokeObjectURL(audioRef.current.src);
+
+    const url = URL.createObjectURL(file);
+    const audio = audioRef.current;
+    audio.src = url;
+    audio.load();
+    audio.play().catch((err) => {
+      console.warn("Автовідтворення не вдалося:", err);
+    });
+
+    // fallback metadata
+    setMediaSessionMetadata({
+      title: file.name,
+      artist: "Невідомий виконавець",
+      album: "",
+      pictureUrl: "/icon-512.webp",
+    });
+  }, [currentIndex, files]);
+
+  // Зчитування метаданих з треку
+  useEffect(() => {
+    const readMetadata = async () => {
+      if (currentIndex === null || !files?.length) return;
       const file = files[currentIndex];
 
-      if (!(file instanceof File)) {
-        console.error("Недійсний формат файлу", file);
-        return;
-      }
+      try {
+        const result = await parseBlob(file);
+        const title = result.common.title || file.name;
+        const artist = result.common.artist || "Невідомий виконавець";
+        const album = result.common.album || "";
 
-      if (audioRef.current.src) {
-        URL.revokeObjectURL(audioRef.current.src);
-      }
-
-      const url = URL.createObjectURL(file);
-      audioRef.current.src = url;
-      audioRef.current.load();
-
-      audioRef.current.play().catch((err) => {
-        console.warn("Автоматичне відтворення не вдалося:", err);
-      });
-
-      if ("mediaSession" in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: file.name,
-          artist: "Невідомий виконавець",
-          artwork: [{ src: "/icon-512.webp", sizes: "512x512", type: "image/webp" }],
-        });
-
-        navigator.mediaSession.setActionHandler("play", () => audioRef.current.play());
-        navigator.mediaSession.setActionHandler("pause", () => audioRef.current.pause());
-        navigator.mediaSession.setActionHandler("previoustrack", playPrevious);
-        navigator.mediaSession.setActionHandler("nexttrack", playNext);
-      }
-    }
-  }, [currentIndex, files]);
-
-  const playNext = () => {
-    if (files && files.length > 0) {
-      setCurrentIndex((prev) => (prev === null ? 0 : (prev + 1) % files.length));
-    }
-  };
-
-  const playPrevious = () => {
-    if (files && files.length > 0) {
-      setCurrentIndex((prev) => (prev === null ? files.length - 1 : (prev - 1 + files.length) % files.length));
-    }
-  };
-
-  const playTrack = (index) => {
-    setCurrentIndex(index);
-  };
-
-  const handleAudioEnd = () => {
-    playNext();
-  };
-
-  useEffect(() => {
-    const extractMetadata = async () => {
-      if (currentIndex !== null && files && files.length > 0) {
-        const file = files[currentIndex];
-  
-        try {
-          const metadataResult = await parseBlob(file);
-          const title = metadataResult.common.title || file.name;
-          const artist = metadataResult.common.artist || "Невідомий виконавець";
-          const album = metadataResult.common.album || "";
-  
-          let pictureUrl = "/icon-512.webp";
-          if (metadataResult.common.picture && metadataResult.common.picture.length > 0) {
-            const pic = metadataResult.common.picture[0];
-            const blob = new Blob([pic.data], { type: pic.format });
-            pictureUrl = URL.createObjectURL(blob);
-          }
-  
-          setMetadata({ title, artist, album, pictureUrl });
-  
-          if ("mediaSession" in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-              title,
-              artist,
-              album,
-              artwork: [
-                { src: pictureUrl, sizes: "512x512", type: "image/png" }
-              ]
-            });
-          }
-        } catch (error) {
-          console.error("Не вдалося зчитати метадані:", error);
-          setMetadata({ title: file.name, artist: "Невідомий", album: "", pictureUrl: "/icon-512.webp" });
+        let pictureUrl = "/icon-512.webp";
+        if (result.common.picture?.[0]) {
+          const pic = result.common.picture[0];
+          const blob = new Blob([pic.data], { type: pic.format });
+          pictureUrl = URL.createObjectURL(blob);
         }
+
+        const meta = { title, artist, album, pictureUrl };
+        setMetadata(meta);
+        setMediaSessionMetadata(meta);
+      } catch (err) {
+        console.error("Помилка зчитування метаданих:", err);
+        const fallback = {
+          title: file.name,
+          artist: "Невідомий",
+          album: "",
+          pictureUrl: "/icon-512.webp",
+        };
+        setMetadata(fallback);
+        setMediaSessionMetadata(fallback);
       }
     };
-  
-    extractMetadata();
+
+    readMetadata();
   }, [currentIndex, files]);
+
+  const handleAudioEnd = () => playNext();
 
   return (
     <div className={styles.playerContainer}>
       <div className={styles.playerHeader}>
-        {metadata.pictureUrl && (
-          <img src={metadata.pictureUrl} alt="Обкладинка" className={styles.coverArt} />
-        )}
+        <img src={metadata.pictureUrl} alt="Обкладинка" className={styles.coverArt} />
         <div className={styles.metadata}>
           <strong className={styles.title}>{metadata.title}</strong>
           <p className={styles.subtitle}>
@@ -164,8 +164,8 @@ const Player = ({ files }) => {
             {metadata.album ? ` — ${metadata.album}` : ""}
           </p>
           <div className={styles.audioControls}>
-            <button onClick={playPrevious} disabled={!files || files.length === 0}>⏮</button>
-            <button onClick={playNext} disabled={!files || files.length === 0}>⏭</button>
+            <button onClick={playPrevious} disabled={!files?.length}>⏮</button>
+            <button onClick={playNext} disabled={!files?.length}>⏭</button>
           </div>
         </div>
       </div>
@@ -176,7 +176,7 @@ const Player = ({ files }) => {
         {files?.map((file, index) => (
           <li
             key={index}
-            onClick={() => playTrack(index)}
+            onClick={() => setCurrentIndex(index)}
             className={`${styles.trackItem} ${index === currentIndex ? styles.trackItemActive : ""}`}
           >
             <span className={styles.trackName}>{file.name}</span>
