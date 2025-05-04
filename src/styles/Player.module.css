@@ -176,6 +176,55 @@
   margin-top: 5px;
 }
 
+.volumeControlContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.volumeSliderWrapper {
+  /* Початково приховуємо або робимо дуже маленьким */
+  width: 0;
+  overflow: hidden;
+  transition: width 0.2s ease-in-out;
+}
+
+.volumeControlContainer:hover .volumeSliderWrapper,
+.volumeControlContainer:focus-within .volumeSliderWrapper {
+  /* Показуємо при наведенні або фокусі на контейнері */
+  width: 80px; /* Бажана ширина повзунка */
+}
+
+.volumeSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--card-bg);
+  height: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%; /* Займає всю ширину обгортки за замовчуванням */
+  flex-grow: 1; /* Дозволяє розширюватися у флекс-контейнері */
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.volumeSlider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
 /* Responsive adjustments */
 @media (min-width: 768px) {
   .playerHeader {

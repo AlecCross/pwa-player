@@ -26,6 +26,24 @@ const Player = ({ files }) => {
         return `${minutes}:${remainingSeconds}`; // Повертаємо відформатований час
     };
 
+    const [volume, setVolume] = useState(1); // Початкова гучність 1 (максимальна)
+    const [isMuted, setIsMuted] = useState(false);
+
+    const handleVolumeChange = (event) => {
+        const newVolume = parseFloat(event.target.value);
+        setVolume(newVolume);
+        if (audioRef.current) {
+            audioRef.current.volume = newVolume;
+        }
+    };
+
+    const toggleMute = () => {
+        setIsMuted(!isMuted);
+        if (audioRef.current) {
+            audioRef.current.muted = !isMuted;
+        }
+    };
+
     const playNext = () => {
         console.log("playNext викликано, поточний currentIndex:", currentIndex);
         if (!tracks?.length) return;
@@ -252,30 +270,29 @@ const Player = ({ files }) => {
 
     useEffect(() => {
         const audio = audioRef.current;
-        if (!audio) return;
-
-        const onLoadedMetadata = () => setDuration(audio.duration);
-        const onPlay = () => setIsPlaying(true);
-        const onPause = () => setIsPlaying(false);
-        const onSeeked = () => {
-        };
-
-        audio.addEventListener("loadedmetadata", onLoadedMetadata);
-        audio.addEventListener("play", onPlay);
-        audio.addEventListener("pause", onPause);
-        audio.addEventListener("ended", handleAudioEnd);
-        audio.addEventListener("seeked", onSeeked);
-        audio.addEventListener("loadedmetadata", onLoadedMetadata);
-
-        return () => {
-            audio.removeEventListener("loadedmetadata", onLoadedMetadata);
-            audio.removeEventListener("play", onPlay);
-            audio.removeEventListener("pause", onPause);
-            audio.removeEventListener("ended", handleAudioEnd);
-            audio.removeEventListener("seeked", onSeeked);
-            audio.removeEventListener("loadedmetadata", onLoadedMetadata);
-        };
-    }, [handleAudioEnd]);
+        if (audio) {
+            audio.volume = volume; // Застосовуємо початкову гучність
+    
+            const onLoadedMetadata = () => setDuration(audio.duration);
+            const onPlay = () => setIsPlaying(true);
+            const onPause = () => setIsPlaying(false);
+            const onSeeked = () => {};
+    
+            audio.addEventListener("loadedmetadata", onLoadedMetadata);
+            audio.addEventListener("play", onPlay);
+            audio.addEventListener("pause", onPause);
+            audio.addEventListener("ended", handleAudioEnd);
+            audio.addEventListener("seeked", onSeeked);
+    
+            return () => {
+                audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+                audio.removeEventListener("play", onPlay);
+                audio.removeEventListener("pause", onPause);
+                audio.removeEventListener("ended", handleAudioEnd);
+                audio.removeEventListener("seeked", onSeeked);
+            };
+        }
+    }, [handleAudioEnd, volume]);
 
     return (
         <div className={styles.playerContainer}>
@@ -294,6 +311,22 @@ const Player = ({ files }) => {
                             {isPlaying ? "⏸" : "▶"}
                         </button>
                         
+                    </div>
+                    <div className={styles.volumeControlContainer}>
+                        <button onClick={toggleMute}>
+                            {isMuted ? "🔇" : "🔊"}
+                        </button>
+                        <div className={styles.volumeSliderWrapper}>
+                            <input
+                                type="range"
+                                className={styles.volumeSlider}
+                                value={volume}
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                onChange={handleVolumeChange}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
