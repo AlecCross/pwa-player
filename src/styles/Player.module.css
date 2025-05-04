@@ -131,6 +131,51 @@
   color: #ccc;
 }
 
+.timelineContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 0;
+  margin-bottom: 10px; 
+}
+
+.timeline {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--card-bg);
+  height: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.timeline::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.timeline::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+.timeDisplay {
+  font-size: 0.8rem;
+  color: var(--player-subtext);
+  margin-top: 5px;
+}
+
 /* Responsive adjustments */
 @media (min-width: 768px) {
   .playerHeader {

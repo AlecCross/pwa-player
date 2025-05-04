@@ -20,6 +20,12 @@ const Player = ({ files }) => {
 
     const naturalSort = useNaturalSort();
 
+    const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60).toString().padStart(2, '0');
+        return `${minutes}:${remainingSeconds}`; // Повертаємо відформатований час
+    };
+
     const playNext = () => {
         console.log("playNext викликано, поточний currentIndex:", currentIndex);
         if (!tracks?.length) return;
@@ -71,6 +77,13 @@ const Player = ({ files }) => {
                 album: "",
                 artwork: [{ src: "/icon-512.webp", sizes: "512x512", type: "image/png" }],
             });
+        }
+    };
+
+    const handleTimelineChange = (event) => {
+        if (audioRef.current) {
+            audioRef.current.currentTime = parseFloat(event.target.value);
+            setCurrentTime(parseFloat(event.target.value)); // Оновлюємо локальний стан
         }
     };
 
@@ -252,6 +265,7 @@ const Player = ({ files }) => {
         audio.addEventListener("pause", onPause);
         audio.addEventListener("ended", handleAudioEnd);
         audio.addEventListener("seeked", onSeeked);
+        audio.addEventListener("loadedmetadata", onLoadedMetadata);
 
         return () => {
             audio.removeEventListener("loadedmetadata", onLoadedMetadata);
@@ -259,6 +273,7 @@ const Player = ({ files }) => {
             audio.removeEventListener("pause", onPause);
             audio.removeEventListener("ended", handleAudioEnd);
             audio.removeEventListener("seeked", onSeeked);
+            audio.removeEventListener("loadedmetadata", onLoadedMetadata);
         };
     }, [handleAudioEnd]);
 
@@ -278,10 +293,23 @@ const Player = ({ files }) => {
                         <button onClick={isPlaying ? handlePause : handlePlay}>
                             {isPlaying ? "⏸" : "▶"}
                         </button>
+                        
                     </div>
                 </div>
             </div>
-            <audio ref={audioRef} controls onEnded={handleAudioEnd} className={styles.audioElement} />
+            <div className={styles.timelineContainer}>
+                <span className={styles.timeDisplay}>{formatTime(currentTime)}</span> 
+                <input
+                    type="range"
+                    className={styles.timeline}
+                    value={currentTime}
+                    min="0"
+                    max={duration}
+                    onChange={handleTimelineChange}
+                />    
+                <span className={styles.timeDisplay}>{formatTime(duration)}</span>
+            </div>
+            <audio ref={audioRef} onEnded={handleAudioEnd} className={styles.audioElement} />
             <ul className={styles.trackList}>
                 {loading ? (
                     <li className={styles.loadingItem}>
