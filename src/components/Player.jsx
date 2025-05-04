@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import styles from "../styles/Player.module.css";
 import { parseBlob } from "music-metadata";
+import useNaturalSort from "../hooks/useNaturalSort";
 
 const Player = ({ files }) => {
     const [currentIndex, setCurrentIndex] = useState(null);
@@ -17,42 +18,7 @@ const Player = ({ files }) => {
     const [totalCount, setTotalCount] = useState(0);
     const [currentLoadingTrackName, setCurrentLoadingTrackName] = useState("");
 
-    function naturalSort(a, b) {
-        const re = /(^-?[0-9]+(\.[0-9]+)?$)|(^-?\.?[0-9]+$)|(^-?[0-9]+\.$)/i,
-            sre = /(^[ ]*|[ ]*$)/g,
-            dre = /(^([\w ]+,?[\w ]+)?([ ]*(.+[^,])+,?)*[. ]*([ ]*[^\w]+)+[ ]*$)/g,
-            hre = /^0[x]0*([0-9a-f]+|[ ]*)$/i,
-            ore = /^0(0*([0-7]+|[ ]*)+|[ ]*)$/i,
-            i = function(s) { return (naturalSort.insensitive && ("" + s).toLowerCase()) || "" + s },
-            // convert all to strings strip whitespace
-            x = i(a).replace(sre, '') || '',
-            y = i(b).replace(sre, '') || '',
-            // chunk/tokenize
-            xN = x.replace(re, '\0$1\0').replace(/\0$/, '').replace(/^\0/, '').split('\0'),
-            yN = y.replace(re, '\0$1\0').replace(/\0$/, '').replace(/^\0/, '').split('\0'),
-            // hex/octal detection
-            xD = parseInt(x.match(hre)) || (xN.length != 1 && x.match(ore) && parseInt(x)) || 0,
-            yD = parseInt(y.match(hre)) || (yN.length != 1 && y.match(ore) && parseInt(y)) || 0;
-        let oFxNcL, oFyNcL; // Оголошуємо oFxNcL та oFyNcL без ініціалізації
-
-        // first try and sort Hex/Oct first
-        if (xD && yD && xD != yD) return (xD > yD) ? 1 : -1;
-        // natural sorting through split numeric strings and default strings
-        for (var cLoc = 0, numS = Math.max(xN.length, yN.length); cLoc < numS; cLoc++) {
-            oFxNcL = !(xN[cLoc] || '').match(re) && parseFloat(xN[cLoc]) || xN[cLoc] || '';
-            oFyNcL = !(yN[cLoc] || '').match(re) && parseFloat(yN[cLoc]) || yN[cLoc] || '';
-            // handle numeric vs string comparison - number < string - (Kyle Adams)
-            if (isNaN(oFxNcL) !== isNaN(oFyNcL)) { return (isNaN(oFxNcL)) ? 1 : -1; }
-            // rely on string comparison if different types - i.e. '2' < '2a'
-            else if (typeof oFxNcL !== typeof oFyNcL) {
-                oFxNcL += '';
-                oFyNcL += '';
-            }
-            if (oFxNcL < oFyNcL) return -1;
-            if (oFxNcL > oFyNcL) return 1;
-        }
-        return 0;
-    }
+    const naturalSort = useNaturalSort();
 
     const playNext = () => {
         console.log("playNext викликано, поточний currentIndex:", currentIndex);
@@ -207,24 +173,24 @@ const Player = ({ files }) => {
             const sortedTracks = [...processedTracks].sort((a, b) => {
                 const trackA = a.metadata.trackNumber;
                 const trackB = b.metadata.trackNumber;
-
-                console.log(`Порівняння: "${a.file.name}" (track: ${trackA}) vs "${b.file.name}" (track: ${trackB})`);
-
+        
+                console.log(`Порівняння: "${a.file.name}" (track: <span class="math-inline">\{trackA\}\) vs "</span>{b.file.name}" (track: ${trackB})`);
+        
                 if (trackA != null && trackB != null) {
                     const numA = parseInt(trackA, 10);
                     const numB = parseInt(trackB, 10);
                     if (!isNaN(numA) && !isNaN(numB)) {
                         const result = numA - numB;
-                        console.log(`  Числове порівняння trackNumber: ${numA} - ${numB} = ${result}`);
+                        console.log(`  Числове порівняння trackNumber: ${numA} - ${numB} = ${result}`);
                         return result;
                     }
                     const stringResult = String(trackA).localeCompare(String(trackB), undefined, { numeric: true, sensitivity: 'base' });
-                    console.log(`  Рядкове порівняння trackNumber: "${trackA}" vs "${trackB}" = ${stringResult}`);
+                    console.log(`  Рядкове порівняння trackNumber: "<span class="math-inline">\{trackA\}" vs "</span>{trackB}" = ${stringResult}`);
                     return stringResult;
                 }
-
-                const naturalSortResult = naturalSort(a.file.name, b.file.name);
-                console.log(`  Natural sort (один або обидва без trackNumber): "${a.file.name}" vs "${b.file.name}" = ${naturalSortResult}`);
+        
+                const naturalSortResult = naturalSort(a.file.name, b.file.name); // Використання функції з хука
+                console.log(`  Natural sort (один або обидва без trackNumber): "<span class="math-inline">\{a\.file\.name\}" vs "</span>{b.file.name}" = ${naturalSortResult}`);
                 return naturalSortResult;
             });
 
