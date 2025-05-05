@@ -86,14 +86,14 @@ const Player = ({ files }) => {
                 title: track.metadata.title || track.file.name,
                 artist: track.metadata.artist || "Невідомий виконавець",
                 album: track.metadata.album || "",
-                artwork: [{ src: track.metadata.pictureUrl || "/icon-512.webp", sizes: "512x512", type: "image/png" }],
+                artwork: [{ src: track.metadata.pictureUrl || "/icons/icon-512.webp", sizes: "512x512", type: "image/png" }],
             });
         } else if ("mediaSession" in navigator && track) {
             navigator.mediaSession.metadata = new MediaMetadata({
                 title: track.file.name,
                 artist: "Невідомий виконавець",
                 album: "",
-                artwork: [{ src: "/icon-512.webp", sizes: "512x512", type: "image/png" }],
+                artwork: [{ src: "/icons/icon-512.webp", sizes: "512x512", type: "image/png" }],
             });
         }
     };
@@ -178,7 +178,7 @@ const Player = ({ files }) => {
                     title: file.name,
                     artist: "Невідомий виконавець",
                     album: "",
-                    pictureUrl: "/icon-512.webp",
+                    pictureUrl: "/icons/icon-512.webp",
                 };
 
                 try {
@@ -297,7 +297,7 @@ const Player = ({ files }) => {
     return (
         <div className={styles.playerContainer}>
             <div className={styles.playerHeader}>
-                <img src={currentTrack?.metadata?.pictureUrl || "/icon-512.webp"} alt="Обкладинка" className={styles.coverArt} />
+                <img src={currentTrack?.metadata?.pictureUrl || "/icons/icon-512.webp"} alt="Обкладинка" className={styles.coverArt} />
                 <div className={styles.metadata}>
                     <strong className={styles.title}>{currentTrack?.metadata?.title || currentTrack?.file?.name || ""}</strong>
                     <p className={styles.subtitle}>
