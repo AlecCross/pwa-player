@@ -225,6 +225,148 @@
   border: none;
 }
 
+
+
+
+
+
+
+
+
+
+
+/* Покращені елементи керування аудіо */
+.audioControls {
+  margin-top: 15px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: center; /* Центрування кнопок */
+}
+
+.audioControls button {
+  background-color: transparent; /* Прозорий фон */
+  color: var(--accent);
+  border: none;
+  padding: 10px;
+  border-radius: 50%; /* Круглі кнопки */
+  cursor: pointer;
+  transition: color 0.3s ease;
+  font-size: 1.5rem; /* Збільшений розмір іконок */
+  line-height: 1; /* Вирівнювання іконок */
+}
+
+.audioControls button:hover {
+  color: var(--accent-hover); /* Зміна кольору при наведенні */
+  background-color: rgba(var(--accent-rgb), 0.1); /* Легкий фон при наведенні */
+}
+
+.audioControls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--player-subtext);
+  background-color: transparent;
+}
+
+/* Стилізація шкали часу */
+.timeline {
+  background: var(--card-border); /* Інший колір фону */
+}
+
+.timeline::-webkit-slider-thumb {
+  background: var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* Додаємо тінь */
+}
+
+.timeline::-moz-range-thumb {
+  background: var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* Додаємо тінь */
+}
+
+.timeDisplay {
+  font-size: 0.9rem;
+}
+
+/* Стилізація регулятора гучності */
+.volumeControlContainer button {
+  background-color: transparent;
+  color: var(--player-subtext);
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+.volumeControlContainer button:hover {
+  color: var(--accent);
+}
+
+.volumeSlider {
+  background: var(--card-border);
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  background: var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.volumeSlider::-moz-range-thumb {
+  background: var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Стилізація списку треків */
+.trackList li {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.trackList li:last-child {
+  border-bottom: none;
+}
+
+.trackItem:hover {
+  background-color: rgba(var(--accent-rgb), 0.05);
+}
+
+.trackItemActive {
+  background-color: rgba(var(--accent-rgb), 0.1);
+  color: var(--accent);
+  font-weight: 500;
+  border-left: 5px solid var(--accent);
+  padding-left: 10px;
+}
+
+/* Адаптація для великих екранів */
+@media (min-width: 768px) {
+  .playerHeader {
+      align-items: center;
+      gap: 20px;
+  }
+
+  .metadata {
+      text-align: left;
+      margin-left: 20px;
+  }
+
+  .audioControls {
+      margin-top: 0;
+      justify-content: flex-start;
+  }
+
+  .coverArt {
+      max-width: 150px;
+      border-radius: 4px;
+  }
+}
+
+
+
+
+
+
+
 /* Responsive adjustments */
 @media (min-width: 768px) {
   .playerHeader {
