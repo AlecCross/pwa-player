@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import styles from '../styles/FilePicker.module.css';
-import { savePlaylist } from '../lib/db';
 
 const FilePicker = ({ onFilesSelected }) => {
   const [files, setFiles] = useState([]);
@@ -10,7 +9,6 @@ const FilePicker = ({ onFilesSelected }) => {
   const selectFolder = async () => {
     try {
       const directoryHandle = await window.showDirectoryPicker();
-      console.log("directoryHandle:", directoryHandle);
       const audioFilesWithHandles = [];
       const audioFiles = [];
 
@@ -24,13 +22,8 @@ const FilePicker = ({ onFilesSelected }) => {
         }
       }
 
-      console.log("audioFilesWithHandles:", audioFilesWithHandles);
       setFiles(audioFiles);
       onFilesSelected(audioFiles);
-
-      console.log("Викликаємо savePlaylist...");
-      await savePlaylist(directoryHandle.name, audioFilesWithHandles);
-      console.log("savePlaylist завершено.");
 
     } catch (error) {
       console.error("Помилка вибору папки:", error);

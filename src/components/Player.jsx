@@ -45,25 +45,18 @@ const Player = ({ files }) => {
     };
 
     const playNext = () => {
-        console.log("playNext викликано, поточний currentIndex:", currentIndex);
         if (!tracks?.length) return;
         const nextIndex = (currentIndex === null ? 0 : (currentIndex + 1) % tracks.length);
-        console.log("playNext: новий індекс:", nextIndex);
         setCurrentIndex(nextIndex);
-        console.log("playNext: currentIndex оновлено на:", nextIndex);
     };
 
     const playPrevious = () => {
-        console.log("playPrevious викликано, поточний currentIndex:", currentIndex);
         if (!tracks?.length) return;
         const prevIndex = (currentIndex === null ? tracks.length - 1 : (currentIndex - 1 + tracks.length) % tracks.length);
-        console.log("playPrevious: новий індекс:", prevIndex);
         setCurrentIndex(prevIndex);
-        console.log("playPrevious: currentIndex оновлено на:", prevIndex);
     };
 
     const handlePlay = () => {
-        console.log("handlePlay викликано, isPlaying:", isPlaying);
         if (audioRef.current) {
             audioRef.current.play();
             setIsPlaying(true);
@@ -72,7 +65,6 @@ const Player = ({ files }) => {
     };
 
     const handlePause = () => {
-        console.log("handlePause викликано, isPlaying:", isPlaying);
         if (audioRef.current) {
             audioRef.current.pause();
             setIsPlaying(false);
@@ -141,23 +133,17 @@ const Player = ({ files }) => {
     useEffect(() => {
         if ("mediaSession" in navigator) {
             navigator.mediaSession.setActionHandler("play", () => {
-                console.log("MediaSession: play викликано");
                 handlePlay();
                 setIsPlaying(true);
-                console.log("MediaSession: стан isPlaying оновлено на true");
             });
             navigator.mediaSession.setActionHandler("pause", () => {
-                console.log("MediaSession: pause викликано");
                 handlePause();
                 setIsPlaying(false);
-                console.log("MediaSession: стан isPlaying оновлено на false");
             });
             navigator.mediaSession.setActionHandler("previoustrack", () => {
-                console.log("MediaSession: previoustrack викликано");
                 playPrevious();
             });
             navigator.mediaSession.setActionHandler("nexttrack", () => {
-                console.log("MediaSession: nexttrack викликано");
                 playNext();
             });
         }
@@ -205,27 +191,21 @@ const Player = ({ files }) => {
                 const trackA = a.metadata.trackNumber;
                 const trackB = b.metadata.trackNumber;
         
-                console.log(`Порівняння: "${a.file.name}" (track: <span class="math-inline">\{trackA\}\) vs "</span>{b.file.name}" (track: ${trackB})`);
-        
                 if (trackA != null && trackB != null) {
                     const numA = parseInt(trackA, 10);
                     const numB = parseInt(trackB, 10);
                     if (!isNaN(numA) && !isNaN(numB)) {
                         const result = numA - numB;
-                        console.log(`  Числове порівняння trackNumber: ${numA} - ${numB} = ${result}`);
                         return result;
                     }
                     const stringResult = String(trackA).localeCompare(String(trackB), undefined, { numeric: true, sensitivity: 'base' });
-                    console.log(`  Рядкове порівняння trackNumber: "<span class="math-inline">\{trackA\}" vs "</span>{trackB}" = ${stringResult}`);
                     return stringResult;
                 }
         
-                const naturalSortResult = naturalSort(a.file.name, b.file.name); // Використання функції з хука
-                console.log(`  Natural sort (один або обидва без trackNumber): "<span class="math-inline">\{a\.file\.name\}" vs "</span>{b.file.name}" = ${naturalSortResult}`);
+                const naturalSortResult = naturalSort(a.file.name, b.file.name);
                 return naturalSortResult;
             });
 
-            console.log("Відсортований масив sortedTracks:", sortedTracks.map(item => ({ name: item.file.name, track: item.metadata.trackNumber })));
             setTracks(sortedTracks);
             setCurrentIndex(0);
         };
@@ -247,8 +227,6 @@ const Player = ({ files }) => {
 
         if (!(file instanceof File)) return console.error("Недійсний файл:", file);
 
-        console.log("useEffect для currentTrack, файл:", file.name);
-
         if (audioRef.current?.src) URL.revokeObjectURL(audioRef.current.src);
 
         const url = URL.createObjectURL(file);
@@ -266,8 +244,7 @@ const Player = ({ files }) => {
             });
     }, [currentTrack]);
 
-    const handleAudioEnd = () => playNext(); // Визначення функції handleAudioEnd
-
+    const handleAudioEnd = () => playNext();
     useEffect(() => {
         const audio = audioRef.current;
         if (audio) {

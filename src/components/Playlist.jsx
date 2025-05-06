@@ -1,3 +1,5 @@
+//src/components/Playlist.jsx
+
 import styles from '../styles/Playlist.module.css';
 
 const Playlist = ({ files, onSelect, currentIndex }) => {

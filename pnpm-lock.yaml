@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      idb:
-        specifier: 7.1.1
-        version: 7.1.1
       music-metadata:
         specifier: ^11.2.1
         version: 11.2.1
